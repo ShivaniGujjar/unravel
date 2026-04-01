@@ -2,18 +2,30 @@ import {Server} from 'socket.io';
 
 let io;
 
-export function initSocket (httpServer) {
+export function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: { origin: 'http://localhost:5173', credentials: true },
-  })
- 
+  });
+  
   console.log('Socket.io initialized');
 
   io.on('connection', (socket) => {
-    console.log('New client connected:', socket.id);
-  })
+    // 🔍 DEBUG: Let's see exactly what the frontend is sending
+    const userId = socket.handshake.query.userId; 
 
+    if (userId && userId !== "undefined") {
+      socket.join(userId); 
+      console.log(`✅ User ${userId} connected and joined private room`);
+    } else {
+      console.log("⚠️ A client connected but provided no userId!");
+    }
 
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
+    });
+  });
+
+  return io; // 🚀 THIS IS THE MISSING PIECE!
 };
 
   

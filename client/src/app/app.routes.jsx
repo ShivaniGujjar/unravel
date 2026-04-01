@@ -16,21 +16,25 @@ const routes = createBrowserRouter([
     element: <Register />,
   },
   {
-    path: '/',   // ✅ ADD THIS
-    element: 
-    <Protected>
-      <Dashboard />
-    </Protected>
-    ,
+    path: '/', // 🏠 Base Dashboard (Empty Chat)
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
   },
-
+  {
+    path: '/chat/:chatId', // 💬 Existing Chat Dashboard
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
+  },
   {
     path: '/dashboard',
-    element: 
-    <Navigate to="/" replace />
-    ,
+    element: <Navigate to="/" replace />,
   }
-  
 ]);
 
 export default routes;

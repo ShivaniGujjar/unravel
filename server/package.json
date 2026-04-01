@@ -17,6 +17,7 @@
     "@langchain/google-genai": "^2.1.25",
     "@langchain/mistralai": "^1.0.7",
     "@mistralai/mistralai": "^2.1.1",
+    "@tavily/core": "^0.7.2",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

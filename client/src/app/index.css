@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+.messages::-webkit-scrollbar{
+    display: none;
+}
+
+.prose pre {
+  background-color: #111827;
+  padding: 10px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.prose code {
+  color: #22d3ee;
+  font-size: 13px;
+}
