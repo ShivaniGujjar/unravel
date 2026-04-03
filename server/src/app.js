@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
-import cors from 'cors';
+import cors from 'cors'; // Pehle se import hai, niche require ki zaroorat nahi
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import chatRoutes from './routes/chat.routes.js';
@@ -12,13 +12,14 @@ const app = express();
 // 1. Basic Middlewares
 app.use(morgan('dev'));
 app.use(cookieParser());
-const cors = require('cors');
+app.use(express.json()); // Ye line zaroori hai JSON data read karne ke liye
 
-// Isse replace karo:
+// ✅ CORS Fix: Yahan 'require' hata kar sirf ye use karo
 app.use(cors({
     origin: ["https://unravelit.netlify.app", "http://localhost:5173"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"] // Headers bhi define kar diye safety ke liye
 }));
 
 // 🚀 2. Create a placeholder for IO
@@ -33,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 4. Routes (Now they will have access to req.io)
+// 4. Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 
