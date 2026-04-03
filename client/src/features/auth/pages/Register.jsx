@@ -54,7 +54,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch('https://perplexity-0rr0.onrender.com/api/auth/register', {
+      const response = await fetch('https://unravel-bm4y.onrender.com/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
