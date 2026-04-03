@@ -16,7 +16,7 @@ app.use(express.json()); // Ye line zaroori hai JSON data read karne ke liye
 
 // ✅ CORS Fix: Yahan 'require' hata kar sirf ye use karo
 app.use(cors({
-    origin: ["https://unravelit.netlify.app", "http://localhost:5173"],
+    origin: ["https://unravel-liart.vercel.app", "http://localhost:5173"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"] // Headers bhi define kar diye safety ke liye

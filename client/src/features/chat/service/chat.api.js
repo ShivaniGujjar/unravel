@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://unravel-bm4y.onrender.com",
+    baseURL: "https://unravel-liart.vercel.app",
     withCredentials: true,
 });
 
