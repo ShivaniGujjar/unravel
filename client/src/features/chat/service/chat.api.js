@@ -10,12 +10,30 @@ const api = axios.create({
 
 
 api.interceptors.request.use((config) => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const token = user?.token || localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    try {
+        const userData = localStorage.getItem("user");
+        let token = localStorage.getItem("token"); // Check for a direct token first
+
+        if (userData && userData !== "[object Object]") {
+            const parsed = JSON.parse(userData);
+            // 🚀 Check all possible paths where the token might be hiding
+            token = token || parsed.token || (parsed.data && parsed.data.token) || (parsed.user && parsed.user.token);
+        }
+
+        if (token && token !== "undefined" && token !== "null") {
+            // Clean up the token string (remove quotes if they exist)
+            const cleanToken = token.toString().replace(/['"]+/g, '').trim();
+            config.headers.Authorization = `Bearer ${cleanToken}`;
+            // console.log("Header attached successfully!"); // Debug only
+        } else {
+            console.warn("Interceptor: No valid token found in LocalStorage");
+        }
+    } catch (error) {
+        console.error("Interceptor Error:", error);
     }
     return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 // 💬 SEND MESSAGE
