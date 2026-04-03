@@ -48,13 +48,27 @@ const Sidebar = ({
       {/* 1. TOP SECTION (Title & Button) */}
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         
-<div className="flex items-center gap-2 px-4 py-6">
-  {/* 🧶 Abstract "U" Icon */}
-  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-    <span className="text-white font-black text-xl italic">u</span>
-  </div>
-  <span className="text-2xl font-black tracking-tighter text-white">
-    un<span className="text-blue-400">ravel</span>
+<div className="flex items-center gap-3 px-4 py-6">
+  {/* 🧶 SVG Logo: No more muddy circle, perfect alignment */}
+  <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]">
+    <circle cx="32" cy="32" r="30" fill="#1e293b" fillOpacity="0.5" />
+    <path 
+      d="M22 22V38C22 43.5 26.5 48 32 48C37.5 48 42 43.5 42 38V22" 
+      stroke="url(#logoGrad)" 
+      strokeWidth="6" 
+      strokeLinecap="round" 
+    />
+    <defs>
+      <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#3b82f6" />
+        <stop offset="100%" stopColor="#22d3ee" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  {/* ✍️ Text: Perfectly centered with the SVG */}
+  <span className="text-3xl font-black tracking-tighter text-white leading-none">
+    Un<span className="text-blue-400">ravel</span>
   </span>
 </div>
 

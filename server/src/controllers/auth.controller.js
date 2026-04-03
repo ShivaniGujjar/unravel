@@ -64,31 +64,70 @@ export async function verifyEmail(req, res) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         user = await userModel.findOne({ email: decoded.email });
     } catch (error) {
-        return res.status(400).json({
-            message: "Invalid or expired token",
-            success: false
-        });
+        return res.status(400).send(`
+            <div style="font-family: sans-serif; text-align: center; padding: 50px; background: #020617; color: white; min-height: 100vh;">
+                <h1 style="color: #ef4444;">Verification Failed</h1>
+                <p>The link is invalid or has expired.</p>
+                <a href="https://unravel-liart.vercel.app/register" style="color: #60a5fa;">Try registering again</a>
+            </div>
+        `);
     }
 
     if (!user) {
-        return res.status(400).json({
-            message: "Invalid token",
-            success: false,
-            err: "User not found"
-        });
+        return res.status(400).send("User not found");
     }
 
     user.verified = true;
     await user.save();
 
-    const html = `
-        <p>Hi ${user.username},</p>
-        <p>Your email has been successfully verified! You can now log in to your account and start using Perplexity.</p>
-        <p>Best regards,<br>The Perplexity Team</p>
+    const successHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { 
+                margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                background-color: #020617; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; 
+            }
+            .card { 
+                background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); 
+                border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px; 
+                text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-width: 400px; width: 90%;
+            }
+            .icon { 
+                background: #22c55e; color: white; width: 60px; height: 60px; line-height: 60px; 
+                border-radius: 50%; font-size: 30px; margin: 0 auto 20px; 
+            }
+            h1 { 
+                margin: 0 0 10px; font-size: 28px; font-weight: 800;
+                background: linear-gradient(to right, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            }
+            p { color: #94a3b8; line-height: 1.6; margin-bottom: 30px; }
+            .btn { 
+                display: inline-block; background: #2563eb; color: white; padding: 14px 28px; 
+                text-decoration: none; border-radius: 12px; font-weight: bold; transition: 0.3s;
+                box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            }
+            .btn:hover { background: #3b82f6; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="icon">✓</div>
+            <h1>Verified!</h1>
+            <p>Hi <b>${user.username}</b>, your account is now active. You can start unraveling your thoughts right away.</p>
+            <a href="https://unravel-liart.vercel.app/login" class="btn">Login to Unravel</a>
+        </div>
+    </body>
+    </html>
     `;
 
-    res.send(html);
+    res.send(successHtml);
 }
+
+
 
 export async function login(req, res) {
 

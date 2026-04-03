@@ -17,7 +17,7 @@ export async function sendEmail({ to, subject, html, text }) {
     });
 
     const mailOptions = {
-        from: `Perplexity Team <${process.env.GOOGLE_USER}>`,
+        from: `Unravel Team <${process.env.GOOGLE_USER}>`,
         to,
         subject,
         html,

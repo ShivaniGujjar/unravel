@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Gradient -->
+    <linearGradient id="gradU" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"></stop>
+      <stop offset="100%" stop-color="#22d3ee"></stop>
+    </linearGradient>
+
+    <!-- Glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="blur"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+
+    <!-- Background glow -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0f172a"></stop>
+      <stop offset="100%" stop-color="#020617"></stop>
+    </radialGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGlow)"></circle>
+
+  <!-- Outer glow aura -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#22d3ee" stroke-opacity="0.15" stroke-width="6"></circle>
+
+  <!-- U shape -->
+  <path d="M22 18 V36 C22 46 42 46 42 36 V18" fill="none" stroke="url(#gradU)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"></path>
+</svg>
