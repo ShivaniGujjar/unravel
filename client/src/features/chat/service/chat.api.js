@@ -2,7 +2,17 @@ import axios from "axios";
 
 const api = axios.create({
     baseURL: "https://unravel-bm4y.onrender.com",
-    withCredentials: true, // ✅ Tokens are now always included
+    withCredentials: true,
+});
+
+
+api.interceptors.request.use((config) => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const token = user?.token || localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
 });
 
 // 💬 SEND MESSAGE

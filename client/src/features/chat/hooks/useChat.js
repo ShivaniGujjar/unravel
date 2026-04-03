@@ -1,4 +1,4 @@
-import { initializeSocketConnection } from "../service/chat.socket";
+
 import { sendMessage, getChats, getMessages, deleteChat ,renameChat } from "../service/chat.api";
 import {
   setChats,
@@ -146,12 +146,10 @@ const handleRenameChat = useCallback(async (chatId, newTitle) => {
   }, [dispatch]);
 
   return {
-    initializeSocketConnection,
     handleSendMessage,
     handleGetChats,
     handleOpenChat,
     handleDeleteChat,
     handleRenameChat,
-    
-  };
+};
 };

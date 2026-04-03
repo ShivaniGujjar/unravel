@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 
 // 🛠️ Custom Hooks & Services
 import { useChat } from "../hooks/useChat";
-import { socket } from "../service/chat.socket";
+import { socket, initializeSocketConnection } from "../service/chat.socket";
 
 // 📦 Redux Actions
 import {
@@ -18,13 +18,13 @@ import { logout } from "../../auth/auth.slice";
 // 🧩 Components
 import Sidebar from "../../auth/components/Sidebar";
 import ChatModals from "../../auth/components/ChatModals";
-
-
 import { motion, AnimatePresence } from "framer-motion";
-import TypingIndicator from "../../../features/auth/components/TypingIndicator"; // Import the new component
+import TypingIndicator from "../../../features/auth/components/TypingIndicator";
+
+// ✅ Import logoutUser from auth api
+import { logoutUser } from "../../auth/services/auth.api";
 
 const Dashboard = () => {
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { chatId: urlChatId } = useParams();
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const Dashboard = () => {
 
   const messagesEndRef = useRef(null);
 
-  // 🚀 Missing Rename Logic
+  // 🚀 Rename Logic
   const handleRenameSubmit = async () => {
     if (!newTitle.trim()) return;
     try {
@@ -59,9 +59,10 @@ const Dashboard = () => {
     }
   };
 
+  // ✅ Fixed logout — no longer uses chat.api
   const handleLogout = async () => {
     try {
-      await chat.api.post("/api/auth/logout", {}, { withCredentials: true });
+      await logoutUser();
     } catch (err) {
       console.error("Logout API failed", err);
     } finally {
@@ -73,8 +74,9 @@ const Dashboard = () => {
   const cleanTitle = (title) =>
     title ? title.replace(/\*\*/g, "") : "Untitled Chat";
 
+  // ✅ Fixed — initializeSocketConnection called directly, not via chat hook
   useEffect(() => {
-    chat.initializeSocketConnection();
+    initializeSocketConnection();
     chat.handleGetChats();
     socket.on("chat-chunk", (data) => {
       dispatch(updateStreamingMessage(data));
@@ -93,11 +95,10 @@ const Dashboard = () => {
   }, [urlChatId, currentChatId, isLoading, isComposingNewChat]);
 
   useEffect(() => {
-  if (urlChatId) {
-    // API call karke messages laao
-    chat.handleOpenChat(urlChatId);
-  }
-}, [urlChatId]);
+    if (urlChatId) {
+      chat.handleOpenChat(urlChatId);
+    }
+  }, [urlChatId]);
 
   const handleNewChat = useCallback(() => {
     navigate("/");
@@ -107,7 +108,8 @@ const Dashboard = () => {
   }, [navigate, dispatch]);
 
   const handleSend = useCallback(async () => {
-    if (!socket.connected) chat.initializeSocketConnection();
+    // ✅ Fixed — call directly, not via chat hook
+    if (!socket.connected) initializeSocketConnection();
     if (!input.trim()) return;
 
     const userMessage = input;
@@ -135,12 +137,15 @@ const Dashboard = () => {
     }
   }, [input, urlChatId, currentChatId, chat, navigate, dispatch]);
 
-  const currentMessages = (urlChatId && chats[urlChatId]) 
-  ? chats[urlChatId].messages 
-  : (currentChatId === "temp-new" ? chats["temp-new"]?.messages : []);
-
+  const currentMessages =
+    urlChatId && chats[urlChatId]
+      ? chats[urlChatId].messages
+      : currentChatId === "temp-new"
+        ? chats["temp-new"]?.messages
+        : [];
 
   const showChat = !!urlChatId || currentChatId === "temp-new" || isLoading;
+
   useEffect(() => {
     if (messagesEndRef.current) {
       setTimeout(() => {
@@ -152,11 +157,11 @@ const Dashboard = () => {
     }
   }, [currentMessages]);
 
- return (
+  return (
     <div className="flex h-screen bg-[#0f172a] text-white overflow-hidden font-sans">
 
-      {/* 📱 Mobile Hamburger Button (Only visible on small screens) */}
-      <button 
+      {/* 📱 Mobile Hamburger Button */}
+      <button
         onClick={() => setIsSidebarOpen(true)}
         className="md:hidden fixed top-4 left-4 z-40 p-2 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-xl text-white"
       >
@@ -167,9 +172,8 @@ const Dashboard = () => {
         </svg>
       </button>
 
-
       <Sidebar
-        isSidebarOpen={isSidebarOpen} 
+        isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         chats={chats}
         urlChatId={urlChatId}
@@ -187,101 +191,88 @@ const Dashboard = () => {
 
       <div className="flex-1 flex flex-col bg-[#0f172a] relative">
         {!(activeChat || isComposingNewChat) ? (
-  <motion.div 
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden"
-  >
-    {/* ✨ Dynamic Background Glows */}
-    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
-    
-    <div className="max-w-3xl w-full text-center z-10">
-     {/* Inside the Dashboard Hero Section */}
-<motion.h1 
-  initial={{ y: 20, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  className="text-6xl font-black mb-4 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent tracking-tight"
->
-  Hello, {user?.username?.split(' ')[0] || 'User'}.
-</motion.h1>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden"
+          >
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
+            <div className="max-w-3xl w-full text-center z-10">
+              <motion.h1
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="text-6xl font-black mb-4 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent tracking-tight"
+              >
+                Hello, {user?.username?.split(" ")[0] || "User"}.
+              </motion.h1>
 
-<motion.p
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ delay: 0.2 }}
-  className="text-xl text-gray-400 font-medium mb-12"
->
-  Where knowledge begins.
-</motion.p>
-      {/* 🚀 Updated Suggestion Cards with Selection State */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-18 text-left">
-  {[
-    { title: "Understand an algorithm", desc: "Explain it to me like I'm five.", icon: "💡" },
-    { title: "Refactor my code", desc: "Clean up my MERN stack logic.", icon: "⚡" },
-    { title: "Write a cover letter", desc: "For a Junior Developer role.", icon: "📝" },
-    { title: "IPL Match Update", desc: "Who is playing tonight?", icon: "🏏" }
-  ].map((item, i) => {
-    // 🔍 Check if this card's text is currently in the input
-    const isSelected = input === item.title;
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-xl text-gray-400 font-medium mb-12"
+              >
+                Where knowledge begins.
+              </motion.p>
 
-    return (
-      <motion.div
-        key={i}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: i * 0.1 }}
-        onClick={() => {
-          setInput(item.title);
-          // 🎯 Bonus: Focus the input field automatically
-          document.querySelector('input')?.focus();
-        }}
-        className={`p-5 rounded-2xl cursor-pointer transition-all duration-300 group border-2 ${
-          isSelected 
-            ? "bg-blue-600/20 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]" 
-            : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-        }`}
-      >
-        <div className={`text-2xl mb-2 transition-transform duration-300 ${isSelected ? "scale-110" : "group-hover:scale-110"}`}>
-          {item.icon}
-        </div>
-        <h3 className={`text-sm font-bold transition-colors ${isSelected ? "text-blue-400" : "text-white group-hover:text-blue-400"}`}>
-          {item.title}
-        </h3>
-        <p className="text-xs text-gray-400 mt-1">{item.desc}</p>
-        
-        {/* ✨ Small "Selected" indicator dot */}
-        {isSelected && (
-          <motion.div 
-            layoutId="activeDot"
-            className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2"
-          />
-        )}
-      </motion.div>
-    );
-  })}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-18 text-left">
+                {[
+                  { title: "Understand an algorithm", desc: "Explain it to me like I'm five.", icon: "💡" },
+                  { title: "Refactor my code", desc: "Clean up my MERN stack logic.", icon: "⚡" },
+                  { title: "Write a cover letter", desc: "For a Junior Developer role.", icon: "📝" },
+                  { title: "IPL Match Update", desc: "Who is playing tonight?", icon: "🏏" },
+                ].map((item, i) => {
+                  const isSelected = input === item.title;
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      onClick={() => {
+                        setInput(item.title);
+                        document.querySelector("input")?.focus();
+                      }}
+                      className={`p-5 rounded-2xl cursor-pointer transition-all duration-300 group border-2 ${
+                        isSelected
+                          ? "bg-blue-600/20 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+                          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className={`text-2xl mb-2 transition-transform duration-300 ${isSelected ? "scale-110" : "group-hover:scale-110"}`}>
+                        {item.icon}
+                      </div>
+                      <h3 className={`text-sm font-bold transition-colors ${isSelected ? "text-blue-400" : "text-white group-hover:text-blue-400"}`}>
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">{item.desc}</p>
+                      {isSelected && (
+                        <motion.div
+                          layoutId="activeDot"
+                          className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2"
+                        />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
 
-
-
-  
-</div>
-
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        onClick={handleNewChat}
-        className="mt-12 text-gray-500 hover:text-white text-sm font-medium transition-colors border-b border-transparent hover:border-white"
-      >
-        Or just start a new thread →
-      </motion.button>
-    </div>
-  </motion.div>
-): (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                onClick={handleNewChat}
+                className="mt-12 text-gray-500 hover:text-white text-sm font-medium transition-colors border-b border-transparent hover:border-white"
+              >
+                Or just start a new thread →
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : (
           <>
             <div className="flex-1 overflow-y-auto px-6 py-12 custom-scrollbar relative">
               <div className="max-w-4xl mx-auto space-y-12">
-                {/* 🚀 ANIMATED MESSAGE LIST */}
                 <AnimatePresence mode="popLayout">
                   {currentMessages.map((msg, index) => (
                     <motion.div
@@ -309,7 +300,6 @@ const Dashboard = () => {
                   ))}
                 </AnimatePresence>
 
-                {/* 🚀 ANIMATED LOADING STATE */}
                 <AnimatePresence>
                   {isLoading && (
                     <motion.div
@@ -321,11 +311,10 @@ const Dashboard = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                
+
                 <div ref={messagesEndRef} className="h-20" />
               </div>
 
-              {/* Scroll to Bottom Button */}
               <button
                 onClick={() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })}
                 className="sticky bottom-4 float-right mr-4 p-2.5 bg-[#1e293b]/90 border border-white/10 rounded-full hover:bg-blue-600 text-cyan-400 hover:text-white transition-all shadow-2xl z-50"
@@ -336,8 +325,7 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Input Bar */}
-            <motion.div 
+            <motion.div
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               className="w-full max-w-4xl mx-auto p-8 sticky bottom-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a] to-transparent"
@@ -367,7 +355,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Modals remain the same */}
       <ChatModals
         editingChatId={editingChatId}
         setEditingChatId={setEditingChatId}

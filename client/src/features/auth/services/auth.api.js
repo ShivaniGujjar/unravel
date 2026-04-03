@@ -20,3 +20,10 @@ export async function getMe() {
     const response = await api.get("/api/auth/get-me")
     return response.data
 }
+
+
+// Add this to your auth.api.js
+export async function logoutUser() {
+    const response = await api.post("/api/auth/logout");
+    return response.data;
+}
