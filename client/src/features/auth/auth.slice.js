@@ -8,10 +8,10 @@ const savedUser = localStorage.getItem("user")
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: savedUser, // 🚀 Now it persists on reload!
-    loading: false,  // Set to false by default unless fetching
-    error: null,
-  },
+  user: savedUser,
+  loading: false, // 👈 Keep this false
+  error: null,
+},
   reducers: { 
     setUser: (state, action) => {
       state.user = action.payload;

@@ -30,3 +30,19 @@ export const deleteChat = async (chatId) => {
     const response = await api.delete(`/api/chat/delete/${chatId}`);
     return response.data;
 }
+
+
+// Add this to chat.api.js
+// client/src/features/chat/service/chat.api.js
+
+export const renameChat = async (chatId, title) => {
+  try {
+    // 🚀 THE FIX: Added /api and kept 'chat' singular
+    // Path must be: /api/chat/ID/rename
+    const response = await api.patch(`/api/chat/${chatId}/rename`, { title });
+    
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

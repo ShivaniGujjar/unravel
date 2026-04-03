@@ -215,3 +215,30 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+
+
+
+// server/src/controllers/auth.controller.js
+
+export async function logout(req, res) {
+    try {
+        // 🚀 THE FIX: Clear the "token" cookie
+        res.cookie("token", "", {
+            httpOnly: true,
+            expires: new Date(0), // Sets expiration to 1970 (deletes it)
+            sameSite: "lax",
+            secure: false,        // Match your login settings
+            path: "/",
+        });
+
+        return res.status(200).json({
+            message: "Logged out successfully",
+            success: true,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Server error during logout",
+            success: false,
+        });
+    }
+}

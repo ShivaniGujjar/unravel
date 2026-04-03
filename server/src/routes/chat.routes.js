@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendMessage, getChats, getMessages, deleteChat } from '../controllers/chat.controller.js';
+import { sendMessage, getChats, getMessages, deleteChat, renameChat } from '../controllers/chat.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 
 const chatRouter = express.Router();
@@ -11,5 +11,9 @@ chatRouter.get('/',protect,getChats)
 chatRouter.get('/:chatId/messages',protect,getMessages)
 
 chatRouter.delete('/delete/:chatId',protect,deleteChat)
+
+// chatRouter.js
+// Ensure this matches the order the frontend is sending
+chatRouter.patch('/:chatId/rename', protect, renameChat);
 
 export default chatRouter

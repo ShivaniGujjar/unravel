@@ -143,3 +143,35 @@ export async function deleteChat(req, res) {
     res.status(500).json({ message: "Error deleting chat" });
   }
 }
+
+
+
+export async function renameChat(req, res) {
+  try {
+    const { chatId } = req.params;
+    const { title } = req.body;
+    const userId = getSafeUserId(req.user); // Get the logged-in user
+
+    // 1. FIXED: Use 'chatModel' instead of 'Chat'
+    // 2. Added security: Only update if the chat belongs to the current user
+    const updatedChat = await chatModel.findOneAndUpdate(
+      { _id: chatId, user: userId },
+      { title: title },
+      { new: true }
+    );
+
+    if (!updatedChat) {
+      return res.status(404).json({ success: false, message: "Chat not found or unauthorized" });
+    }
+
+    // 3. FIXED: Wrap in success object to match your Frontend expectation
+    res.status(200).json({
+      success: true,
+      message: "Chat renamed successfully",
+      chat: updatedChat
+    });
+  } catch (error) {
+    console.error("Rename Controller Error:", error);
+    res.status(500).json({ success: false, message: "Error renaming chat" });
+  }
+}

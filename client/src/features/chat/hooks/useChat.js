@@ -1,5 +1,5 @@
 import { initializeSocketConnection } from "../service/chat.socket";
-import { sendMessage, getChats, getMessages, deleteChat } from "../service/chat.api";
+import { sendMessage, getChats, getMessages, deleteChat ,renameChat } from "../service/chat.api";
 import {
   setChats,
   setCurrentChatId,
@@ -9,7 +9,8 @@ import {
   addNewMessage,
   deleteChat as deleteChatAction,
   updateLastMessage,
-  setMessages
+  setMessages,
+  updateChatTitle
 } from "../chat.slice";
 import { useDispatch } from "react-redux";
 import { useCallback } from "react";
@@ -105,28 +106,34 @@ export const useChat = () => {
 
   // 📂 OPEN SPECIFIC CHAT (Used when clicking sidebar or reloading page)
   const handleOpenChat = useCallback(async (chatId) => {
-    if (!chatId || chatId.startsWith("temp-")) return;
+  if (!chatId || chatId.startsWith("temp-")) return;
 
-    dispatch(setCurrentChatId(chatId));
-    dispatch(setLoading(true));
+  // 🚀 Step A: ID set karo turant
+  dispatch(setCurrentChatId(chatId));
+  
+  try {
+    const data = await getMessages(chatId);
+    // Step B: Messages dalo
+    dispatch(setMessages({ chatId, messages: data.messages }));
+  } catch (error) {
+    console.error("Reload Fetch Error:", error);
+  }
+}, [dispatch]);
 
-    try {
-      const data = await getMessages(chatId);
-      const { messages } = data;
 
-      const formattedMessages = messages.map(msg => ({
-        content: msg.content,
-        role: msg.role
-      }));
-
-      dispatch(setMessages({ chatId, messages: formattedMessages }));
-
-    } catch (error) {
-      dispatch(setError(error.message));
-    } finally {
-      dispatch(setLoading(false));
+  // Inside useChat.js
+const handleRenameChat = useCallback(async (chatId, newTitle) => {
+  try {
+    const data = await renameChat(chatId, newTitle);
+    
+    // 🚀 This makes the sidebar change the name immediately!
+    if (data.success || data._id) { 
+      dispatch(updateChatTitle({ chatId, title: newTitle })); 
     }
-  }, [dispatch]);
+  } catch (err) {
+    console.error("Rename Error in Hook:", err);
+  }
+}, [dispatch]);
 
   // 🗑️ DELETE CHAT
   const handleDeleteChat = useCallback(async (chatId) => {
@@ -143,6 +150,8 @@ export const useChat = () => {
     handleSendMessage,
     handleGetChats,
     handleOpenChat,
-    handleDeleteChat
+    handleDeleteChat,
+    handleRenameChat,
+    
   };
 };

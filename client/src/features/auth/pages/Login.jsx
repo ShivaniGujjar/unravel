@@ -1,13 +1,10 @@
-import { useState } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react'; // 🚀 Added useEffect
+import { useNavigate, Link } from 'react-router-dom'; // 🚀 Removed Navigate
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../auth.slice";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -15,12 +12,18 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // 🛡️ REPLACEMENT GUARD:
+  // Instead of a hard 'return <Navigate />', we use a useEffect.
+  // This prevents the "kick-back" loop when the component first mounts.
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
 
@@ -29,7 +32,6 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    // 1. Basic Validation
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -37,13 +39,10 @@ const Login = () => {
     }
 
     try {
-      // 2. API Call
       const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // 🛡️ CRITICAL: Allows browser to store the JWT Cookie
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', 
         body: JSON.stringify(formData),
       });
 
@@ -55,55 +54,43 @@ const Login = () => {
         return;
       }
 
-      // 3. SUCCESS FLOW:
-      // First: Save to LocalStorage so chat.socket.js can find the ID immediately
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Second: Update Redux state
       dispatch(setUser(data.user)); 
-
-      // Third: Redirect to Dashboard
-      navigate('/');
+      // The useEffect above will handle the navigation to '/'
       
     } catch (err) {
       setError('An error occurred. Please try again.');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🛡️ Guard: If user is already in Redux, don't show login page
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative w-full max-w-md">
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl p-8 md:p-10">
+      <div className="relative w-full max-w-md z-10">
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl shadow-2xl p-8 md:p-10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
               Welcome Back
             </h1>
-            <p className="text-slate-400 text-sm">Sign in to your account to continue</p>
+            <p className="text-slate-400 text-sm font-medium">Sign in to your account to continue</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm font-medium">{error}</p>
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl">
+              <p className="text-red-400 text-sm font-bold">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Email Address</label>
               <input
                 type="email"
                 name="email"
@@ -111,12 +98,12 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="name@example.com"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Password</label>
               <input
                 type="password"
                 name="password"
@@ -124,22 +111,22 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition-all shadow-lg disabled:cursor-not-allowed"
+              className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-xl shadow-blue-600/10 disabled:cursor-not-allowed active:scale-[0.98]"
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
-          <p className="text-center text-slate-400 text-sm mt-8">
+          <p className="text-center text-slate-500 text-sm mt-8 font-medium">
             Don't have an account?{' '}
-            <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+            <Link to="/register" className="text-blue-400 hover:text-blue-300 font-bold transition-colors">
               Create one
             </Link>
           </p>

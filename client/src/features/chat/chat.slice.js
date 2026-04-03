@@ -9,62 +9,54 @@ const chatSlice = createSlice({
     error: null
   },
   reducers: {
-    // 🆕 Create a new chat entry in the sidebar
+    // 🆕 Helper to ensure chat object structure is ALWAYS consistent
     createNewChat: (state, action) => {
       const { chatId, title } = action.payload;
-      state.chats[chatId] = {
-        id: chatId,
-        _id: chatId,
+      const id = chatId.toString(); // Ensure string ID
+      state.chats[id] = {
+        _id: id,
+        id: id,
         title: title || "New Chat",
         messages: [],
         lastUpdated: new Date().toISOString()
       };
     },
 
-    // 📩 Add a complete message (User or AI)
     addNewMessage: (state, action) => {
       const { chatId, content, role } = action.payload;
+      const id = chatId.toString();
 
-      if (!state.chats[chatId]) {
-        state.chats[chatId] = {
-          id: chatId,
-          _id: chatId,
-          title: "New Chat",
-          messages: [],
-          lastUpdated: new Date().toISOString()
+      if (!state.chats[id]) {
+        state.chats[id] = {
+          _id: id, id: id, title: "New Chat", messages: [], lastUpdated: new Date().toISOString()
         };
       }
 
-      state.chats[chatId].messages.push({ content, role });
-      state.chats[chatId].lastUpdated = new Date().toISOString();
+      state.chats[id].messages.push({ content, role });
+      state.chats[id].lastUpdated = new Date().toISOString();
     },
 
-    // ⚡ THE STREAMING LOGIC: Appends chunks to the last AI message
+    // ⚡ STREAMING FIX: We only update the content, 
+    // avoiding the forced timestamp update on every single chunk to prevent UI lag.
     updateStreamingMessage: (state, action) => {
       const { chatId, content } = action.payload;
       const chat = state.chats[chatId];
 
       if (chat && chat.messages.length > 0) {
-        const lastMsgIndex = chat.messages.length - 1;
-        const lastMsg = chat.messages[lastMsgIndex];
+        const lastMsg = chat.messages[chat.messages.length - 1];
 
-        // 🛡️ Guard: Only update if the last message is from the AI
         if (lastMsg.role === "ai") {
-          // If it's the very first chunk or a placeholder, replace it
+          // If first chunk, replace placeholder
           if (lastMsg.content === "..." || lastMsg.content === "") {
             lastMsg.content = content;
           } else {
-            // 🚀 SUCCESS: Append the new word/chunk
             lastMsg.content += content; 
           }
-          
-          // Update timestamp to force the UI to recognize a change in the chat object
-          chat.lastUpdated = new Date().toISOString();
         }
       }
     },
 
-    // 🔄 Update the last message completely (Used for final sync when API finishes)
+    // 🔄 FINAL SYNC: Update timestamp only when the message is fully finished
     updateLastMessage: (state, action) => {
       const { chatId, content } = action.payload;
       const chat = state.chats[chatId];
@@ -72,64 +64,68 @@ const chatSlice = createSlice({
       if (chat && chat.messages.length > 0) {
         const lastMsg = chat.messages[chat.messages.length - 1];
         lastMsg.content = content;
-        chat.lastUpdated = new Date().toISOString();
+        chat.lastUpdated = new Date().toISOString(); // Update order only at the end
       }
     },
 
-    // 📜 Set multiple messages (Used when loading an existing chat)
     setMessages: (state, action) => {
-      const { chatId, messages } = action.payload;
-      if (!chatId) return;
+  const { chatId, messages } = action.payload;
+  if (!chatId) return;
 
-      if (!state.chats[chatId]) {
-        state.chats[chatId] = {
-          id: chatId,
-          _id: chatId,
-          title: "Chat",
-          messages: [],
-          lastUpdated: new Date().toISOString()
-        };
-      }
-      state.chats[chatId].messages = messages;
-    },
+  // 🚀 FIX: Agar reload pe chat object nahi hai, toh usey create karo
+  if (!state.chats[chatId]) {
+    state.chats[chatId] = {
+      id: chatId,
+      _id: chatId,
+      title: "Loading...", // API se title aane tak
+      messages: [],
+      lastUpdated: new Date().toISOString()
+    };
+  }
+  state.chats[chatId].messages = messages;
+},
 
-    // 📂 Global State Setters
     setChats: (state, action) => {
-      state.chats = action.payload;
+      // Normalize incoming chats from backend to ensure they have both id and _id
+      const normalized = {};
+      Object.values(action.payload).forEach(chat => {
+        const id = chat._id || chat.id;
+        normalized[id] = { ...chat, id: id, _id: id };
+      });
+      state.chats = normalized;
     },
+
     setCurrentChatId: (state, action) => {
-      state.currentChatId = action.payload;
+      state.currentChatId = action.payload ? action.payload.toString() : null;
     },
+
     setLoading: (state, action) => {
       state.isLoading = action.payload;
     },
-    setError: (state, action) => {
-      state.error = action.payload;
+
+    updateChatTitle: (state, action) => {
+      const { chatId, title } = action.payload;
+      const id = chatId.toString();
+      if (state.chats[id]) {
+        state.chats[id].title = title;
+      }
     },
 
-    // ✕ Delete a chat
     deleteChat: (state, action) => {
       const { chatId } = action.payload;
-      delete state.chats[chatId];
-      if (state.currentChatId === chatId) {
+      const id = chatId.toString();
+      delete state.chats[id];
+      if (state.currentChatId === id) {
         state.currentChatId = null;
       }
     }
   }
 });
 
-// Export all actions
 export const { 
-  setChats, 
-  setCurrentChatId, 
-  setLoading, 
-  setError, 
-  createNewChat, 
-  addNewMessage, 
-  deleteChat, 
-  updateLastMessage, 
-  setMessages,
-  updateStreamingMessage 
+  setChats, setCurrentChatId, setLoading, setError, 
+  createNewChat, addNewMessage, deleteChat, updateLastMessage, 
+  setMessages, updateStreamingMessage, updateChatTitle
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
