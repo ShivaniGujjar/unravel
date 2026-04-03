@@ -12,11 +12,14 @@ const app = express();
 // 1. Basic Middlewares
 app.use(morgan('dev'));
 app.use(cookieParser());
+const cors = require('cors');
+
+// Isse replace karo:
 app.use(cors({
-  origin: 'http://localhost:5173', 
-  credentials: true
+    origin: ["https://unravelit.netlify.app", "http://localhost:5173"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
 }));
-app.use(express.json());
 
 // 🚀 2. Create a placeholder for IO
 let socketIO = null;
