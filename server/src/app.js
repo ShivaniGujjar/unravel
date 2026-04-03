@@ -1,10 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.routes.js';
+import authRouter from './routes/auth.routes.js';
 import cors from 'cors'; // Pehle se import hai, niche require ki zaroorat nahi
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import chatRoutes from './routes/chat.routes.js';
+import chatRouter from './routes/chat.routes.js';
 
 dotenv.config();
 const app = express();
@@ -35,8 +35,8 @@ app.use((req, res, next) => {
 });
 
 // 4. Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/auth', authRouter);
+app.use('/api/chat', chatRouter);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });

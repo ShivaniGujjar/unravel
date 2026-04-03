@@ -71,7 +71,12 @@ export const useChat = () => {
 
     } catch (error) {
       console.error("Hook Error:", error);
-      dispatch(setError(error.message));
+      
+      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
+      if (typeof setError === 'function') {
+        dispatch(setError(error.message || "An unknown error occurred"));
+      }
+      
       return null;
     } finally {
       dispatch(setLoading(false));
@@ -98,7 +103,14 @@ export const useChat = () => {
         }, {})
       ));
     } catch (error) {
-      dispatch(setError(error.message));
+      console.error("Hook Error:", error);
+      
+      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
+      if (typeof setError === 'function') {
+        dispatch(setError(error.message || "An unknown error occurred"));
+      }
+      
+      return null;
     } finally {
       dispatch(setLoading(false));
     }
@@ -116,8 +128,15 @@ export const useChat = () => {
     // Step B: Messages dalo
     dispatch(setMessages({ chatId, messages: data.messages }));
   } catch (error) {
-    console.error("Reload Fetch Error:", error);
-  }
+      console.error("Hook Error:", error);
+      
+      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
+      if (typeof setError === 'function') {
+        dispatch(setError(error.message || "An unknown error occurred"));
+      }
+      
+      return null;
+    }
 }, [dispatch]);
 
 
@@ -130,9 +149,16 @@ const handleRenameChat = useCallback(async (chatId, newTitle) => {
     if (data.success || data._id) { 
       dispatch(updateChatTitle({ chatId, title: newTitle })); 
     }
-  } catch (err) {
-    console.error("Rename Error in Hook:", err);
-  }
+  } catch (error) {
+      console.error("Hook Error:", error);
+      
+      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
+      if (typeof setError === 'function') {
+        dispatch(setError(error.message || "An unknown error occurred"));
+      }
+      
+      return null;
+    }
 }, [dispatch]);
 
   // 🗑️ DELETE CHAT
@@ -141,7 +167,14 @@ const handleRenameChat = useCallback(async (chatId, newTitle) => {
       await deleteChat(chatId);
       dispatch(deleteChatAction({ chatId }));
     } catch (error) {
-      dispatch(setError(error.message));
+      console.error("Hook Error:", error);
+      
+      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
+      if (typeof setError === 'function') {
+        dispatch(setError(error.message || "An unknown error occurred"));
+      }
+      
+      return null;
     }
   }, [dispatch]);
 

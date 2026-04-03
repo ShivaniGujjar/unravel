@@ -103,6 +103,10 @@ const chatSlice = createSlice({
       state.isLoading = action.payload;
     },
 
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
+
     updateChatTitle: (state, action) => {
       const { chatId, title } = action.payload;
       const id = chatId.toString();

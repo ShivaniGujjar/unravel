@@ -1,7 +1,10 @@
 import axios from "axios";
 
+// Ensure it looks like this in chat.api.js
 const api = axios.create({
-    baseURL: "https://unravel-liart.vercel.app",
+    baseURL: window.location.hostname === "localhost" 
+        ? "http://localhost:3000" 
+        : "https://unravel-bm4y.onrender.com", 
     withCredentials: true,
 });
 
