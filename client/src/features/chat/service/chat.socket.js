@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 
 // 🚀 Create the socket WITHOUT connecting immediately
 // This prevents it from connecting with 'undefined' before the user logs in.
-export const socket = io('http://localhost:3000', {
+export const socket = io('https://perplexity-0rr0.onrender.com', {
   autoConnect: false, // 👈 Important: Don't connect yet!
   withCredentials: true,
 });
