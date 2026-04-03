@@ -3,7 +3,7 @@ import Login from '../features/auth/pages/Login';
 import Register from '../features/auth/pages/Register';
 import Dashboard from '../features/chat/pages/Dashboard';
 import LandingPage from '../features/auth/pages/LandingPage';
-import { Protected } from '../features/auth/components/protected';
+import { Protected } from '../features/auth/components/Protected';
 import { HomeSwitch } from '../features/auth/components/HomeSwitch'; 
 
 const routes = createBrowserRouter([
