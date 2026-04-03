@@ -54,10 +54,14 @@ const Login = () => {
         return;
       }
 
+      // 🚀 THE FIX: Save the token specifically to localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
+      // Save the user data as you were doing before
       localStorage.setItem('user', JSON.stringify(data.user));
-      dispatch(setUser(data.user)); 
-      // The useEffect above will handle the navigation to '/'
-      
+      dispatch(setUser(data.user));
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {

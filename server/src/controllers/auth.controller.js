@@ -127,18 +127,13 @@ export async function login(req, res) {
     );
 
     // 🚀 THE CRITICAL FIX FOR LOCALHOST
-    res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,   // 👈 localhost ke liye false hi hona chahiye
-  sameSite: "lax", // 👈 localhost ke liye lax hi hona chahiye
-  path: "/",
-  maxAge: 24 * 60 * 60 * 1000 
-});
+   res.cookie("token", token, { /* your existing settings */ });
 
-    // Send the response
+    // 🚀 THE FIX: Include 'token' in the JSON response
     return res.status(200).json({
         message: "Login successful",
         success: true,
+        token: token, // <--- ADD THIS LINE
         user: { id: user._id, username: user.username, email: user.email }
     });
 }
@@ -182,39 +177,7 @@ export async function getMe(req, res) {
 
 
 
-export const protect = async (req, res, next) => {
-  try {
-    // 1. Get token from Cookies (since your login uses res.cookie)
-    const token = req.cookies.token;
 
-    if (!token) {
-      console.log("Authorization failed: No token found in cookies");
-      return res.status(401).json({
-        message: "Unauthorized: Please login first",
-        success: false,
-      });
-    }
-
-    // 2. Verify Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 3. Attach user data to the request object
-    // Note: Use 'id' to match your getMe and chat controller logic
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      username: decoded.username
-    };
-
-    next();
-  } catch (error) {
-    console.error("Auth Middleware Error:", error.message);
-    return res.status(401).json({
-      message: "Unauthorized: Invalid or expired token",
-      success: false,
-    });
-  }
-};
 
 
 
