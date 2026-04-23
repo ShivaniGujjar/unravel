@@ -9,24 +9,20 @@ const api = axios.create({
 });
 
 
+// features/chat/service/chat.api.js
+
 api.interceptors.request.use((config) => {
     try {
-        const userData = localStorage.getItem("user");
-        let token = localStorage.getItem("token"); // Check for a direct token first
+        // 🚀 REFRESH FIX: Seedha localStorage se fresh token uthao
+        let token = localStorage.getItem("token");
 
-        if (userData && userData !== "[object Object]") {
-            const parsed = JSON.parse(userData);
-            // 🚀 Check all possible paths where the token might be hiding
-            token = token || parsed.token || (parsed.data && parsed.data.token) || (parsed.user && parsed.user.token);
-        }
-
-        if (token && token !== "undefined" && token !== "null") {
-            // Clean up the token string (remove quotes if they exist)
-            const cleanToken = token.toString().replace(/['"]+/g, '').trim();
+        if (token) {
+            // Agar token quotes mein band hai ("token"), toh use saaf karo
+            const cleanToken = token.replace(/['"]+/g, '');
             config.headers.Authorization = `Bearer ${cleanToken}`;
-            // console.log("Header attached successfully!"); // Debug only
+            // console.log("Token attached:", cleanToken); // Debug ke liye
         } else {
-            console.warn("Interceptor: No valid token found in LocalStorage");
+            console.warn("Interceptor: No token found in localStorage");
         }
     } catch (error) {
         console.error("Interceptor Error:", error);

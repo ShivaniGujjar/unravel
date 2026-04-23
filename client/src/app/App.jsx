@@ -2,33 +2,38 @@ import { RouterProvider } from 'react-router-dom';
 import routes from './app.routes'; 
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useEffect, useState } from 'react';
-import Loader from '../features/auth/components/Loader'; // 👈 Loader import karo
+import Loader from '../features/auth/components/Loader';
+import { useDispatch } from 'react-redux';
+import { setUser, setLoading } from '../features/auth/auth.slice'; // Path check kar lena
 
 function App() {
   const auth = useAuth();
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
-    const userInStorage = localStorage.getItem("user");
-
     const initializeApp = async () => {
+      const userInStorage = localStorage.getItem("user");
+      
       if (userInStorage) {
-        // Backend se user verify hone tak wait karo
-        await auth.handleGetMe();
+        try {
+          // Token ya user confirm karne ke liye API call
+          await auth.handleGetMe(); 
+        } catch (err) {
+          console.error("Auth initialization failed", err);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+        }
       }
       
-      // Chota sa delay for professional feel (optional)
-      setTimeout(() => {
-        setIsAppLoading(false);
-      }, 1500); 
+      // Sab kuch set hone ke baad loading false karein
+      setIsAppLoading(false);
     };
 
     initializeApp();
-  }, []);
+  }, []); 
 
-  // 🚀 THE FIX: Jab tak loading hai, sirf Loader dikhao
   if (isAppLoading) {
-    return <Loader />;
+    return <Loader />; // Jab tak ye dikhega, redirection nahi hoga
   }
 
   return <RouterProvider router={routes} />;

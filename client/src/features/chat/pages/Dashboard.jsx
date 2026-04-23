@@ -75,16 +75,20 @@ const Dashboard = () => {
     title ? title.replace(/\*\*/g, "") : "Untitled Chat";
 
   // ✅ Fixed — initializeSocketConnection called directly, not via chat hook
-  useEffect(() => {
-    initializeSocketConnection();
-    chat.handleGetChats();
-    socket.on("chat-chunk", (data) => {
-      dispatch(updateStreamingMessage(data));
-    });
-    return () => {
-      socket.off("chat-chunk");
-    };
-  }, [dispatch]);
+  // ✅ Sirf ye wala block update karo
+useEffect(() => {
+  initializeSocketConnection();
+  chat.handleGetChats(); // Sidebar list mangwane ke liye
+  
+  socket.on("chat-chunk", (data) => {
+    dispatch(updateStreamingMessage(data));
+  });
+
+  return () => {
+    socket.off("chat-chunk");
+  };
+}, []); // 👈 Isse empty rakho
+
 
   useEffect(() => {
     if (isComposingNewChat || urlChatId || currentChatId) {
@@ -94,15 +98,27 @@ const Dashboard = () => {
     }
   }, [urlChatId, currentChatId, isLoading, isComposingNewChat]);
 
-  useEffect(() => {
+  // ✅ Ye wala update karo
+useEffect(() => {
+  const syncChatOnReload = async () => {
     if (urlChatId) {
-      chat.handleOpenChat(urlChatId);
+      // 1. Redux ko batao ki current chat ye hai
+      dispatch(setCurrentChatId(urlChatId));
+      
+      // 2. Backend se messages mangwao (Reload par data yahi wapas layega)
+      await chat.handleOpenChat(urlChatId);
+      
+      // 3. UI ko active chat mode mein dalo
+      setActiveChat(true);
     }
-  }, [urlChatId]);
+  };
+
+  syncChatOnReload();
+}, [urlChatId, dispatch]);
 
   const handleNewChat = useCallback(() => {
     navigate("/");
-    setActiveChat(true);
+    setActiveChat(false); // 👈 Change this to false
     setIsComposingNewChat(true);
     dispatch(setCurrentChatId(null));
   }, [navigate, dispatch]);
@@ -137,22 +153,20 @@ const Dashboard = () => {
     }
   }, [input, urlChatId, currentChatId, chat, navigate, dispatch]);
 
-  const currentMessages =
-    urlChatId && chats[urlChatId]
-      ? chats[urlChatId].messages
-      : currentChatId === "temp-new"
-        ? chats["temp-new"]?.messages
-        : [];
+  // ✅ Isse data tab bhi dikhega jab chats object load ho raha ho
+// Dashboard.jsx mein line 115 ke paas replace karo
+console.log("1. URL ID:", urlChatId);
+console.log("2. Redux Chats Keys:", Object.keys(chats));
+console.log("3. Redux Current Chat Data:", chats[urlChatId]);
 
-  const showChat = !!urlChatId || currentChatId === "temp-new" || isLoading;
+const currentMessages = (urlChatId && chats[urlChatId]) 
+    ? chats[urlChatId].messages 
+    : [];
 
   useEffect(() => {
     if (messagesEndRef.current) {
       setTimeout(() => {
-        messagesEndRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
       }, 100);
     }
   }, [currentMessages]);

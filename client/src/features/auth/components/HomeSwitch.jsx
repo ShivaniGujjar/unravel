@@ -2,23 +2,23 @@
 import { useSelector } from 'react-redux';
 import LandingPage from '../pages/LandingPage'; 
 import Dashboard from '../../chat/pages/Dashboard';
+import Loader from './Loader'; // 👈 Loader import karo
 
 export const HomeSwitch = () => {
   const { user, loading } = useSelector((state) => state.auth);
 
-  // 🚀 INSTANT CHECK: Look at storage first
-  const hasToken = localStorage.getItem("user");
-
-  // If Redux is still "thinking", show a dark background to prevent white flashes
+  // 🚀 THE FIX: Jab tak authentication process (loading) chal rahi hai,
+  // tab tak koi decision mat lo. User ko Loader dikhao.
   if (loading) {
-    return <div className="h-screen w-screen bg-[#020617]" />;
+    return <Loader />;
   }
 
-  // If we have a user in Redux OR a session in storage, show Dashboard
-  if (user || hasToken) {
+  // Ab loading khatam ho chuki hai, ab decide karo:
+  // User mil gaya (Backend verified) -> Dashboard
+  // User nahi mila -> Landing Page
+  if (user) {
     return <Dashboard />;
   }
 
-  // Otherwise, stay on Landing Page
   return <LandingPage />;
 };

@@ -1,10 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+// Persist and rehydrate chat state
+const persistedChats = localStorage.getItem("chats") ? JSON.parse(localStorage.getItem("chats")) : {};
+const persistedCurrentChatId = localStorage.getItem("currentChatId") || null;
+
 const chatSlice = createSlice({
   name: 'chat',
   initialState: {
-    chats: {},
-    currentChatId: null,
+    chats: persistedChats,
+    currentChatId: persistedCurrentChatId,
     isLoading: false,
     error: null
   },
@@ -20,6 +24,7 @@ const chatSlice = createSlice({
         messages: [],
         lastUpdated: new Date().toISOString()
       };
+      localStorage.setItem("chats", JSON.stringify(state.chats));
     },
 
     addNewMessage: (state, action) => {
@@ -34,6 +39,7 @@ const chatSlice = createSlice({
 
       state.chats[id].messages.push({ content, role });
       state.chats[id].lastUpdated = new Date().toISOString();
+      localStorage.setItem("chats", JSON.stringify(state.chats));
     },
 
     // ⚡ STREAMING FIX: We only update the content, 
@@ -69,21 +75,22 @@ const chatSlice = createSlice({
     },
 
     setMessages: (state, action) => {
-  const { chatId, messages } = action.payload;
-  if (!chatId) return;
+      const { chatId, messages } = action.payload;
+      if (!chatId) return;
 
-  // 🚀 FIX: Agar reload pe chat object nahi hai, toh usey create karo
-  if (!state.chats[chatId]) {
-    state.chats[chatId] = {
-      id: chatId,
-      _id: chatId,
-      title: "Loading...", // API se title aane tak
-      messages: [],
-      lastUpdated: new Date().toISOString()
-    };
-  }
-  state.chats[chatId].messages = messages;
-},
+      // 🚀 FIX: Agar reload pe chat object nahi hai, toh usey create karo
+      if (!state.chats[chatId]) {
+        state.chats[chatId] = {
+          id: chatId,
+          _id: chatId,
+          title: "Loading...", // API se title aane tak
+          messages: [],
+          lastUpdated: new Date().toISOString()
+        };
+      }
+      state.chats[chatId].messages = messages;
+      localStorage.setItem("chats", JSON.stringify(state.chats));
+    },
 
     setChats: (state, action) => {
       // Normalize incoming chats from backend to ensure they have both id and _id
@@ -93,10 +100,12 @@ const chatSlice = createSlice({
         normalized[id] = { ...chat, id: id, _id: id };
       });
       state.chats = normalized;
+      localStorage.setItem("chats", JSON.stringify(state.chats));
     },
 
     setCurrentChatId: (state, action) => {
       state.currentChatId = action.payload ? action.payload.toString() : null;
+      localStorage.setItem("currentChatId", state.currentChatId || "");
     },
 
     setLoading: (state, action) => {
@@ -122,6 +131,8 @@ const chatSlice = createSlice({
       if (state.currentChatId === id) {
         state.currentChatId = null;
       }
+      localStorage.setItem("chats", JSON.stringify(state.chats));
+      localStorage.setItem("currentChatId", state.currentChatId || "");
     }
   }
 });

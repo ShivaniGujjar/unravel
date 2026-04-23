@@ -117,28 +117,26 @@ export const useChat = () => {
   }, [dispatch]);
 
   // 📂 OPEN SPECIFIC CHAT (Used when clicking sidebar or reloading page)
-  const handleOpenChat = useCallback(async (chatId) => {
+ // features/chat/hooks/useChat.js
+
+const handleOpenChat = useCallback(async (chatId) => {
   if (!chatId || chatId.startsWith("temp-")) return;
 
-  // 🚀 Step A: ID set karo turant
   dispatch(setCurrentChatId(chatId));
   
   try {
     const data = await getMessages(chatId);
-    // Step B: Messages dalo
-    dispatch(setMessages({ chatId, messages: data.messages }));
-  } catch (error) {
-      console.error("Hook Error:", error);
-      
-      // ✅ SAFETY CHECK: Only dispatch if setError is a real function
-      if (typeof setError === 'function') {
-        dispatch(setError(error.message || "An unknown error occurred"));
-      }
-      
-      return null;
-    }
-}, [dispatch]);
+    
+    // 🚀 THE FINAL FIX: 
+    // Agar backend array bhej raha hai toh 'data' use karo, 
+    // agar object bhej raha hai toh 'data.messages'.
+    const finalMessages = data.messages || data; 
 
+    dispatch(setMessages({ chatId, messages: finalMessages }));
+  } catch (error) {
+    console.error("Hook Error:", error);
+  }
+}, [dispatch]);
 
   // Inside useChat.js
 const handleRenameChat = useCallback(async (chatId, newTitle) => {
