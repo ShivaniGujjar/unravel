@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
 @import "tailwindcss";
 
-/* 🚀 Global Reset for Smooth Experience */
+
+/* 🚀 Global Reset */
 html {
   scroll-behavior: smooth !important;
   background-color: #020617;
@@ -12,31 +15,36 @@ body {
   background-color: #020617;
   color: white;
   min-height: 100vh;
-  /* Momentum scrolling for mobile */
-  -webkit-overflow-scrolling: touch;
-  /* Hide scrollbars but keep scrolling active */
-  overflow-x: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
   font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Chrome, Safari, Opera: Hide scrollbar */
+/* Hide scrollbar */
 body::-webkit-scrollbar,
 html::-webkit-scrollbar {
   display: none;
-  width: 0;
-  height: 0;
 }
 
-/* Helper for smooth easing */
+/* Page load transition */
+.fade-in {
+  animation: pageFade 0.6s ease-out forwards;
+}
+
+@keyframes pageFade {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer utilities {
   .perspective-1000 {
     perspective: 1000px;
   }
 }
 
-/* Code block styles for your AI responses */
+/* AI response styles */
 .prose pre {
   background-color: #111827;
   padding: 16px;
@@ -49,4 +57,3 @@ html::-webkit-scrollbar {
   color: #22d3ee;
   font-size: 13px;
 }
-

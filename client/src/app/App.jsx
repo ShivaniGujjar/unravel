@@ -1,23 +1,35 @@
 import { RouterProvider } from 'react-router-dom';
 import routes from './app.routes'; 
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Loader from '../features/auth/components/Loader'; // 👈 Loader import karo
 
 function App() {
   const auth = useAuth();
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
-    // 🚀 THE FIX: Check if user exists in localStorage first
     const userInStorage = localStorage.getItem("user");
 
-    if (!userInStorage) {
-      console.log("No user in storage, skipping auto-login.");
-      return; // 👈 STOP: Don't call the API if user is logged out
-    }
+    const initializeApp = async () => {
+      if (userInStorage) {
+        // Backend se user verify hone tak wait karo
+        await auth.handleGetMe();
+      }
+      
+      // Chota sa delay for professional feel (optional)
+      setTimeout(() => {
+        setIsAppLoading(false);
+      }, 1500); 
+    };
 
-    // Only if user exists, we verify with the backend
-    auth.handleGetMe();
-  }, []); // Only run once on mount
+    initializeApp();
+  }, []);
+
+  // 🚀 THE FIX: Jab tak loading hai, sirf Loader dikhao
+  if (isAppLoading) {
+    return <Loader />;
+  }
 
   return <RouterProvider router={routes} />;
 }
